@@ -41,9 +41,9 @@ const ChatLog = props => {
   // ** State
   const [msg, setMsg] = useState('')
   const [visible, setVisible] = useState(false)
-  //const [focus, setFocus] = useState(false)
+  //const [reply, setReply] = useState(false)
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 })
-  //const [chatLog, setChatLog] = useState(null)
+  const [selected, setSelected] = useState(null)
   const ref = createRef()
 
   // ** Scroll to chat bottom
@@ -52,17 +52,18 @@ const ChatLog = props => {
     chatContainer.scrollTop = Number.MAX_SAFE_INTEGER
   }
 
-  const handleClick = (event, index) => {
+  const handleClick = (event, index, msg) => {
     event.preventDefault()
     setVisible(true)
     setAnchorPoint({ x: event.pageX, y: event.pageY })
+    setSelected(msg)
     console.log(index)
   }
 
   const handleReplyClick = () => {
     //event.preventDefault()
     ref.current.focus()
-    //setFocus(true)
+    //setReply(true)
     setVisible(false)
   }
 
@@ -140,7 +141,7 @@ const ChatLog = props => {
             <div className='chat-body'>
               {item.messages.map((chat) => (
                 <div key={chat.msg} className='chat-content'>
-                  <p onContextMenu={e => handleClick(e, index)}>{chat.msg}</p>
+                  <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
                 </div>
               ))}
             </div>
@@ -248,6 +249,13 @@ const ChatLog = props => {
             {selectedUser.chat ? <div className='chats'>{renderChats()}</div> : null}
           </ChatWrapper>
 
+          {
+            selected !== null &&
+            <div style={{display:'grid', gridTemplateColumns:'20% 80%', border:'1px solid black', marginTop:'2%'}}>
+              <div style={{ borderLeft: "6px solid green", height: "45px" }}></div>
+              <div style={{marginLeft:'-160px'}}>{selected}</div>
+            </div>
+          }
           <Form className='chat-app-form' onSubmit={e => handleSendMsg(e)}>
             <InputGroup  className='input-group-merge me-1 form-send-message'>
               <InputGroupText>
