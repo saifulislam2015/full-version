@@ -41,8 +41,9 @@ const ChatLog = props => {
   // ** State
   const [msg, setMsg] = useState('')
   const [visible, setVisible] = useState(false)
-  const [focus, setFocus] = useState(false)
+  //const [focus, setFocus] = useState(false)
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 })
+  //const [chatLog, setChatLog] = useState(null)
   const ref = createRef()
 
   // ** Scroll to chat bottom
@@ -51,18 +52,17 @@ const ChatLog = props => {
     chatContainer.scrollTop = Number.MAX_SAFE_INTEGER
   }
 
-  const handleClick = (event) => {
+  const handleClick = (event, index) => {
     event.preventDefault()
     setVisible(true)
     setAnchorPoint({ x: event.pageX, y: event.pageY })
-    //console.log('Right Click')
+    console.log(index)
   }
 
   const handleReplyClick = () => {
     //event.preventDefault()
-    console.log(ref)
     ref.current.focus()
-    setFocus(true)
+    //setFocus(true)
     setVisible(false)
   }
 
@@ -109,6 +109,8 @@ const ChatLog = props => {
       }
       if (index === chatLog.length - 1) formattedChatLog.push(msgGroup)
     })
+    //console.log(formattedChatLog)
+    //setChatLog(formattedChatLog)
     return formattedChatLog
   }
 
@@ -136,9 +138,9 @@ const ChatLog = props => {
             </div>
 
             <div className='chat-body'>
-              {item.messages.map(chat => (
+              {item.messages.map((chat) => (
                 <div key={chat.msg} className='chat-content'>
-                  <p onContextMenu={handleClick}>{chat.msg}</p>
+                  <p onContextMenu={e => handleClick(e, index)}>{chat.msg}</p>
                 </div>
               ))}
             </div>
@@ -252,7 +254,6 @@ const ChatLog = props => {
                 <Mic className='cursor-pointer' size={14} />
               </InputGroupText>
               <Input innerRef={ref}
-                autoFocus={focus}
                 value={msg}
                 onChange={e => setMsg(e.target.value)}
                 placeholder='Type your message or use speech to text'
