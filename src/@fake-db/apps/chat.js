@@ -409,13 +409,12 @@ mock.onPost('/apps/chat/delete-msg').reply(config => {
     time: new Date(),
     senderId: obj.senderId
   }
-  
+
   const isNewChat = false
   let tobeDeleted = -1
   if (activeChat !== undefined) {
     for (let i = 0; i < activeChat.chat.length; i++) {
       if (activeChat.chat[i].message === obj.message && activeChat.chat[i].senderId === obj.senderId) {
-        console.log(i)
         tobeDeleted = i
       }
     }

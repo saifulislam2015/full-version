@@ -57,7 +57,6 @@ const ChatLog = props => {
   // ** If user chat is not empty scrollToBottom
   useEffect(() => {
     const selectedUserLen = Object.keys(selectedUser).length
-
     if (selectedUserLen) {
       scrollToBottom()
     }
@@ -143,6 +142,7 @@ const ChatLog = props => {
     setVisible(false)
   }
 
+
   // ** Renders user chat
   const renderChats = () => {
     const chatData = formattedChatData()
@@ -175,7 +175,7 @@ const ChatLog = props => {
                     chat.repliedTo !== null ? <div>
                       <div style={{ opacity:'0.5', backgroundColor:'white', color : 'black' }}>{chat.repliedTo}</div>
                       <p onContextMenu={e => handleClick(e, item.senderId, chat.msg)}>{chat.msg}</p>
-                    </div> : <p onContextMenu={e => handleClick(e, item.senderId, chat.msg)}>{chat.msg}</p>
+                    </div> : <p onContextMenu={e => handleClick(e, item.senderId, chat.msg)} onTouchStart={e => console.log(e)}>{chat.msg}</p>
                   }
                 </div>
               ))}

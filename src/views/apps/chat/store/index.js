@@ -43,7 +43,6 @@ export const editMsg = createAsyncThunk('appChat/editMsg', async (obj, { dispatc
 export const deleteMsg = createAsyncThunk('appChat/deleteMsg', async (obj, { dispatch}) => {
   const response = await axios.post('/apps/chat/delete-msg', { obj })
   await dispatch(selectChat(obj.contact.id))
-  console.log(response)
   return response.data
 })
 
