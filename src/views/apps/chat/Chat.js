@@ -7,7 +7,7 @@ import './Chat.css'
 import Avatar from '@components/avatar'
 
 // ** Store & Actions
-import { sendMsg } from './store'
+import { sendMsg, starMsg } from './store'
 import { useDispatch } from 'react-redux'
 
 // ** Third Party Components
@@ -44,6 +44,7 @@ const ChatLog = props => {
   //const [reply, setReply] = useState(false)
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 })
   const [selected, setSelected] = useState(null)
+  //const [selectedIndex, setSelectedIndex] = useState(null)
   const ref = createRef()
 
   // ** Scroll to chat bottom
@@ -57,11 +58,12 @@ const ChatLog = props => {
     setVisible(true)
     setAnchorPoint({ x: event.pageX, y: event.pageY })
     setSelected(msg)
-    console.log(index)
+    //setSelectedIndex(index)
+    //console.log(index)
   }
 
   const handleReplyClick = () => {
-    //event.preventDefault()
+    event.preventDefault()
     ref.current.focus()
     //setReply(true)
     setVisible(false)
@@ -89,11 +91,14 @@ const ChatLog = props => {
       senderId: chatMessageSenderId,
       messages: []
     }
+    //console.log(chatLog)
     chatLog.forEach((msg, index) => {
       if (chatMessageSenderId === msg.senderId) {
         msgGroup.messages.push({
           msg: msg.message,
-          time: msg.time
+          time: msg.time,
+          repliedTo: msg.repliedTo !== undefined ? msg.repliedTo : null,
+          starred : msg.starred !== undefined ? msg.starred : null
         })
       } else {
         chatMessageSenderId = msg.senderId
@@ -103,24 +108,33 @@ const ChatLog = props => {
           messages: [
             {
               msg: msg.message,
-              time: msg.time
+              time: msg.time,
+              repliedTo: msg.repliedTo !== undefined ? msg.repliedTo : null,
+              starred : msg.starred !== undefined ? msg.starred : null
             }
           ]
         }
       }
       if (index === chatLog.length - 1) formattedChatLog.push(msgGroup)
     })
-    //console.log(formattedChatLog)
-    //setChatLog(formattedChatLog)
     return formattedChatLog
+  }
+
+  const handleStarMsg = e => {
+    e.preventDefault()
+    dispatch(starMsg({...selectedUser, message: selected }))
+    setSelected(null)
+    setVisible(false)
   }
 
   // ** Renders user chat
   const renderChats = () => {
+    const chatData = formattedChatData()
+    console.log(chatData)
     return (
       <>
       {
-        formattedChatData().map((item, index) => {
+        chatData.map((item, index) => {
         return (
           <div
             key={index}
@@ -136,12 +150,31 @@ const ChatLog = props => {
                 className='box-shadow-1 cursor-pointer'
                 img={item.senderId === 11 ? userProfile.avatar : selectedUser.contact.avatar}
               />
+              {
+              item.messages.map((chat) => (
+                <>
+                  {
+                    chat.starred !== null &&
+                    <div style={{position:'fixed', display:'grid', gridTemplateColumns:'5% 95%', backgroundColor:'#f0f5ef', top:'20%', padding :'1% 1%'}}>
+                      <div style={{ borderLeft: "6px solid blue", height: "45px" }}></div>
+                      <div >{chat.msg}</div>
+                    </div>
+                  }
+                </>
+              ))
+            }
             </div>
+            
 
             <div className='chat-body'>
               {item.messages.map((chat) => (
                 <div key={chat.msg} className='chat-content'>
-                  <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
+                  {
+                    chat.repliedTo !== null ? <div>
+                      <div style={{ opacity:'0.5', backgroundColor:'white', color : 'black' }}>{chat.repliedTo}</div>
+                      <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
+                    </div> : <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
+                  }
                 </div>
               ))}
             </div>
@@ -153,7 +186,7 @@ const ChatLog = props => {
         visible &&
         <div style={{ top: anchorPoint.y, left: anchorPoint.x }} className="contextMenu">
           <div className="contextMenu--option" onClick={handleReplyClick}>Reply</div>
-          <div className="contextMenu--option">Pin</div>
+          <div className="contextMenu--option" onClick={handleStarMsg}>Pin</div>
           <div className="contextMenu--option">Edit</div>
           <div className="contextMenu--option">Delete</div>
         </div>
@@ -179,8 +212,9 @@ const ChatLog = props => {
   const handleSendMsg = e => {
     e.preventDefault()
     if (msg.length) {
-      dispatch(sendMsg({ ...selectedUser, message: msg }))
+      dispatch(sendMsg({ ...selectedUser, message: msg, repliedTo : selected  }))
       setMsg('')
+      setSelected(null)
     }
   }
 
@@ -251,9 +285,10 @@ const ChatLog = props => {
 
           {
             selected !== null &&
-            <div style={{display:'grid', gridTemplateColumns:'20% 80%', border:'1px solid black', marginTop:'2%'}}>
+            <div style={{display:'grid', gridTemplateColumns:'20% 78% 2%', border:'1px solid black', marginTop:'2%'}}>
               <div style={{ borderLeft: "6px solid green", height: "45px" }}></div>
-              <div style={{marginLeft:'-160px'}}>{selected}</div>
+              <div style={{marginLeft:'-20%'}}>{selected}</div>
+              <div><img src='https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-close-512.png' width='10px' onClick={() => setSelected(null)}/></div>
             </div>
           }
           <Form className='chat-app-form' onSubmit={e => handleSendMsg(e)}>

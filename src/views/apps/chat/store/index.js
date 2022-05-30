@@ -11,6 +11,7 @@ export const getUserProfile = createAsyncThunk('appChat/getTasks', async () => {
 
 export const getChatContacts = createAsyncThunk('appChat/getChatContacts', async () => {
   const response = await axios.get('/apps/chat/chats-and-contacts')
+  //console.log(response)
   return response.data
 })
 
@@ -23,6 +24,14 @@ export const selectChat = createAsyncThunk('appChat/selectChat', async (id, { di
 export const sendMsg = createAsyncThunk('appChat/sendMsg', async (obj, { dispatch }) => {
   const response = await axios.post('/apps/chat/send-msg', { obj })
   await dispatch(selectChat(obj.contact.id))
+  console.log(response)
+  return response.data
+})
+
+export const starMsg = createAsyncThunk('appChat/starMsg', async (obj, { dispatch}) => {
+  const response = await axios.post('/apps/chat/star-msg', { obj })
+  await dispatch(selectChat(obj.contact.id))
+  console.log(response)
   return response.data
 })
 
