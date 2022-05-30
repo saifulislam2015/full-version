@@ -37,11 +37,18 @@ $chat-widget-height: 390px;
   }
   .active-chat {
     height: inherit;
+    overflow: scroll;
     .chat-header {
       display: flex;
       justify-content: space-between;
       height: $chat-head-footer-height;
       background-color: $white;
+      padding: 0 1rem;
+      border-bottom: 1px solid $border-color;
+    }
+    .chat-pinned{
+      display: grid;
+      grid-template-columns: 2% 98%;
       padding: 0 1rem;
       border-bottom: 1px solid $border-color;
     }

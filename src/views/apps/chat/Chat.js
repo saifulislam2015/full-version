@@ -7,7 +7,7 @@ import './Chat.css'
 import Avatar from '@components/avatar'
 
 // ** Store & Actions
-import { sendMsg, starMsg } from './store'
+import { deleteMsg, editMsg, sendMsg, starMsg } from './store'
 import { useDispatch } from 'react-redux'
 
 // ** Third Party Components
@@ -44,29 +44,14 @@ const ChatLog = props => {
   //const [reply, setReply] = useState(false)
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 })
   const [selected, setSelected] = useState(null)
-  //const [selectedIndex, setSelectedIndex] = useState(null)
+  const [sender, setSender] = useState(null)
+  const [op, setOp] = useState('')
   const ref = createRef()
 
   // ** Scroll to chat bottom
   const scrollToBottom = () => {
     const chatContainer = ReactDOM.findDOMNode(chatArea.current)
     chatContainer.scrollTop = Number.MAX_SAFE_INTEGER
-  }
-
-  const handleClick = (event, index, msg) => {
-    event.preventDefault()
-    setVisible(true)
-    setAnchorPoint({ x: event.pageX, y: event.pageY })
-    setSelected(msg)
-    //setSelectedIndex(index)
-    //console.log(index)
-  }
-
-  const handleReplyClick = () => {
-    event.preventDefault()
-    ref.current.focus()
-    //setReply(true)
-    setVisible(false)
   }
 
   // ** If user chat is not empty scrollToBottom
@@ -120,6 +105,22 @@ const ChatLog = props => {
     return formattedChatLog
   }
 
+  const handleClick = (event, sender, msg) => {
+    event.preventDefault()
+    setVisible(true)
+    setAnchorPoint({ x: event.pageX, y: event.pageY })
+    setSelected(msg)
+    setSender(sender)
+    //console.log(index)
+  }
+
+  const handleReplyClick = e => {
+    e.preventDefault()
+    ref.current.focus()
+    setOp('reply')
+    setVisible(false)
+  }
+
   const handleStarMsg = e => {
     e.preventDefault()
     dispatch(starMsg({...selectedUser, message: selected }))
@@ -127,10 +128,24 @@ const ChatLog = props => {
     setVisible(false)
   }
 
+  const handleEditMsg = e => {
+    e.preventDefault()
+    ref.current.focus()
+    setOp('edit')
+    setMsg(selected)
+    setVisible(false)
+  }
+
+  const handleDeleteMsg = e => {
+    e.preventDefault()
+    dispatch(deleteMsg({...selectedUser, message: selected, senderId : sender}))
+    setSelected(null)
+    setVisible(false)
+  }
+
   // ** Renders user chat
   const renderChats = () => {
     const chatData = formattedChatData()
-    console.log(chatData)
     return (
       <>
       {
@@ -141,7 +156,7 @@ const ChatLog = props => {
             className={classnames('chat', {
               'chat-left': item.senderId !== 11
             })}
-            onClick={() => setVisible(false)}
+            onClick={() => { setVisible(false); setMsg('') }}
           >
             <div className='chat-avatar'>
               <Avatar
@@ -150,19 +165,6 @@ const ChatLog = props => {
                 className='box-shadow-1 cursor-pointer'
                 img={item.senderId === 11 ? userProfile.avatar : selectedUser.contact.avatar}
               />
-              {
-              item.messages.map((chat) => (
-                <>
-                  {
-                    chat.starred !== null &&
-                    <div style={{position:'fixed', display:'grid', gridTemplateColumns:'5% 95%', backgroundColor:'#f0f5ef', top:'20%', padding :'1% 1%'}}>
-                      <div style={{ borderLeft: "6px solid blue", height: "45px" }}></div>
-                      <div >{chat.msg}</div>
-                    </div>
-                  }
-                </>
-              ))
-            }
             </div>
             
 
@@ -172,8 +174,8 @@ const ChatLog = props => {
                   {
                     chat.repliedTo !== null ? <div>
                       <div style={{ opacity:'0.5', backgroundColor:'white', color : 'black' }}>{chat.repliedTo}</div>
-                      <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
-                    </div> : <p onContextMenu={e => handleClick(e, index, chat.msg)}>{chat.msg}</p>
+                      <p onContextMenu={e => handleClick(e, item.senderId, chat.msg)}>{chat.msg}</p>
+                    </div> : <p onContextMenu={e => handleClick(e, item.senderId, chat.msg)}>{chat.msg}</p>
                   }
                 </div>
               ))}
@@ -187,9 +189,39 @@ const ChatLog = props => {
         <div style={{ top: anchorPoint.y, left: anchorPoint.x }} className="contextMenu">
           <div className="contextMenu--option" onClick={handleReplyClick}>Reply</div>
           <div className="contextMenu--option" onClick={handleStarMsg}>Pin</div>
-          <div className="contextMenu--option">Edit</div>
-          <div className="contextMenu--option">Delete</div>
+          {sender === 11 && <div className="contextMenu--option" onClick={handleEditMsg}>Edit</div>}
+          <div className="contextMenu--option" onClick={handleDeleteMsg}>Delete</div>
         </div>
+      }
+      </>
+    )
+  }
+
+  const renderPinnedPost = () => {
+    const chatData = formattedChatData()
+    return (
+      <>
+      {
+        chatData.map((item) => {
+        return (
+            <>
+            {item.messages.map((chat) => (
+              <>
+                {
+                  chat.starred !== null &&
+                  <>
+                    <div style={{ borderLeft: "6px solid blue", height: "45px" }}></div>
+                    <div style={{ display:'grid', gridTemplateColumns:'100%'}}>
+                      <div style={{color:'blue'}}>Pinned Message</div>
+                      <div>{chat.msg}</div>
+                    </div>
+                  </>
+                }
+              </>
+            ))}
+            </>
+          )
+        })
       }
       </>
     )
@@ -211,11 +243,14 @@ const ChatLog = props => {
   // ** Sends New Msg
   const handleSendMsg = e => {
     e.preventDefault()
-    if (msg.length) {
+    if (msg.length && op === 'edit') {
+      dispatch(editMsg({...selectedUser, message: selected, editedMsg: msg }))
+    } else if (msg.length) {
       dispatch(sendMsg({ ...selectedUser, message: msg, repliedTo : selected  }))
       setMsg('')
       setSelected(null)
     }
+    setOp('')
   }
 
   // ** ChatWrapper tag based on chat's length
@@ -277,6 +312,9 @@ const ChatLog = props => {
                 </UncontrolledDropdown>
               </div>
             </header>
+            <div className='chat-pinned'>
+              <>{renderPinnedPost()}</>
+            </div>
           </div>
 
           <ChatWrapper ref={chatArea} className='user-chats' options={{ wheelPropagation: false }}>
@@ -287,8 +325,8 @@ const ChatLog = props => {
             selected !== null &&
             <div style={{display:'grid', gridTemplateColumns:'20% 78% 2%', border:'1px solid black', marginTop:'2%'}}>
               <div style={{ borderLeft: "6px solid green", height: "45px" }}></div>
-              <div style={{marginLeft:'-20%'}}>{selected}</div>
-              <div><img src='https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-close-512.png' width='10px' onClick={() => setSelected(null)}/></div>
+              <div style={{ marginLeft:'-20%'}}>{selected}</div>
+              <div style={{ cursor:'pointer'}}><img src='https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-close-512.png' width='10px' onClick={() => { setSelected(null); setMsg('') }}/></div>
             </div>
           }
           <Form className='chat-app-form' onSubmit={e => handleSendMsg(e)}>

@@ -324,3 +324,106 @@ mock.onPost('/apps/chat/star-msg').reply(config => {
 
   return [201, { response }]
 })
+
+mock.onPost('/apps/chat/edit-msg').reply(config => {
+  // Get event from post data
+  const { obj } = JSON.parse(config.data)
+
+  const activeChat = data.chats.find(chat => chat.userId === obj.contact.id)
+
+  const newMessageData = {
+    message: obj.editedMsg,
+    repliedTo : obj.repliedTo !== null ? obj.repliedTo :  '',
+    time: new Date(),
+    senderId: obj.senderId
+  }
+  // If there's new chat for user create one
+  const isNewChat = false
+  if (activeChat !== undefined) {
+    for (let i = 0; i < activeChat.chat.length; i++) {
+      if (activeChat.chat[i].message === obj.message) {
+        activeChat.chat[i] = {
+          message : obj.editedMsg,
+          repliedTo : activeChat.chat[i].repliedTo,
+          time : activeChat.chat[i].time,
+          senderId : activeChat.chat[i].senderId
+        }
+      }
+    }
+  } 
+  
+
+  const response = { newMessageData, id: obj.contact.id }
+  if (isNewChat) response.chat = activeChat
+
+  return [201, { response }]
+})
+
+mock.onPost('/apps/chat/star-msg').reply(config => {
+  // Get event from post data
+  const { obj } = JSON.parse(config.data)
+
+  const activeChat = data.chats.find(chat => chat.userId === obj.contact.id)
+
+  const newMessageData = {
+    message: obj.message,
+    repliedTo : obj.repliedTo !== null ? obj.repliedTo :  '',
+    time: new Date(),
+    starred : true,
+    senderId: 11
+  }
+  // If there's new chat for user create one
+  const isNewChat = false
+  if (activeChat !== undefined) {
+    for (let i = 0; i < activeChat.chat.length; i++) {
+      if (activeChat.chat[i].message === obj.message) {
+        activeChat.chat[i] = {
+          message : obj.message,
+          repliedTo : activeChat.chat[i].repliedTo,
+          time : activeChat.chat[i].time,
+          senderId : activeChat.chat[i].senderId,
+          starred : true
+        }
+      } else {
+        activeChat.chat[i].starred = null
+      }
+    }
+  } 
+  
+
+  const response = { newMessageData, id: obj.contact.id }
+  if (isNewChat) response.chat = activeChat
+
+  return [201, { response }]
+})
+
+mock.onPost('/apps/chat/delete-msg').reply(config => {
+  // Get event from post data
+  const { obj } = JSON.parse(config.data)
+
+  const activeChat = data.chats.find(chat => chat.userId === obj.contact.id)
+
+  const newMessageData = {
+    message: obj.message,
+    repliedTo : obj.repliedTo !== null ? obj.repliedTo :  '',
+    time: new Date(),
+    senderId: obj.senderId
+  }
+  
+  const isNewChat = false
+  let tobeDeleted = -1
+  if (activeChat !== undefined) {
+    for (let i = 0; i < activeChat.chat.length; i++) {
+      if (activeChat.chat[i].message === obj.message && activeChat.chat[i].senderId === obj.senderId) {
+        console.log(i)
+        tobeDeleted = i
+      }
+    }
+    if (tobeDeleted !== -1) activeChat.chat.splice(tobeDeleted, 1)
+  } 
+  
+  const response = { newMessageData, id: obj.contact.id }
+  if (isNewChat) response.chat = activeChat
+
+  return [201, { response }]
+})

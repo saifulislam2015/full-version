@@ -24,12 +24,24 @@ export const selectChat = createAsyncThunk('appChat/selectChat', async (id, { di
 export const sendMsg = createAsyncThunk('appChat/sendMsg', async (obj, { dispatch }) => {
   const response = await axios.post('/apps/chat/send-msg', { obj })
   await dispatch(selectChat(obj.contact.id))
-  console.log(response)
   return response.data
 })
 
 export const starMsg = createAsyncThunk('appChat/starMsg', async (obj, { dispatch}) => {
   const response = await axios.post('/apps/chat/star-msg', { obj })
+  await dispatch(selectChat(obj.contact.id))
+  return response.data
+})
+
+export const editMsg = createAsyncThunk('appChat/editMsg', async (obj, { dispatch}) => {
+  const response = await axios.post('/apps/chat/edit-msg', { obj })
+  await dispatch(selectChat(obj.contact.id))
+  //console.log(response)
+  return response.data
+})
+
+export const deleteMsg = createAsyncThunk('appChat/deleteMsg', async (obj, { dispatch}) => {
+  const response = await axios.post('/apps/chat/delete-msg', { obj })
   await dispatch(selectChat(obj.contact.id))
   console.log(response)
   return response.data
